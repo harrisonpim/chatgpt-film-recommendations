@@ -8,7 +8,7 @@ export type Rating = {
 
 export async function getRatings(
   username: string,
-  n: number = 10
+  n: number = 100
 ): Promise<Rating[]> {
   const xml = await fetch(`https://letterboxd.com/${username}/rss`).then(
     (res) => res.text()

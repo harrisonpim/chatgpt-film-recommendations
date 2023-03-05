@@ -15,8 +15,11 @@ export default async function handler(
   }
   try {
     const recommendations = await getRecommendations(username as string);
-    res.status(200).json({ recommendations });
+    const parsedRecommendations = JSON.parse(recommendations);
+    res.status(200).json({ recommendations: parsedRecommendations });
   } catch (error) {
+    console.log(error);
+    // @ts-ignore
     res.status(500).json({ message: error.message });
   }
 }

@@ -1,12 +1,19 @@
 import Head from "next/head";
 import { useState } from "react";
 
+type Recommendation = {
+  title: string;
+  year: string;
+  shortDescription: string;
+};
+
 export default function Index() {
-  const [recommendations, setRecommendations] = useState("");
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSubmit = async (username: string) => {
+    setRecommendations([]);
     setError(null);
     setLoading(true);
     const apiResponse = await fetch(`/api/recommend?username=${username}`);
@@ -17,7 +24,7 @@ export default function Index() {
     } else {
       const { recommendations } = await apiResponse.json();
       setLoading(false);
-      setRecommendations(recommendations);
+      setRecommendations(recommendations as Recommendation[]);
     }
   };
 
@@ -39,7 +46,8 @@ export default function Index() {
               ChatGPT API
             </a>
             . Takes a letterboxd username and generates a list of film
-            recommendations based on the RSS feed of the user's watched films.
+            recommendations based on the RSS feed of the user&apos;s watched
+            films.
           </p>
         </div>
         <div>
@@ -55,10 +63,20 @@ export default function Index() {
           </form>
           {loading && <p>Loading...</p>}
           {error && <p>{error}</p>}
-          {recommendations && (
+          {recommendations.length > 0 && (
             <div>
               <h2>Recommendations</h2>
-              <p>{recommendations}</p>
+              <ul>
+                {recommendations.map((recommendation: Recommendation, i) => (
+                  <li key={i}>
+                    <p>
+                      {recommendation.title} ({recommendation.year})
+                      <br />
+                      {recommendation.shortDescription}
+                    </p>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
