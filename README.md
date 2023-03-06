@@ -1,3 +1,5 @@
-# ChatGPT Film Recommendations
+# 🍿 ChatGPT Film Recommendations
 
-A simple webapp to generate film recommendations using the [ChatGPT API](https://platform.openai.com/docs/guides/chat). Takes a letterboxd username and generates a list of film recommendations based on the RSS feed of the user's watched films.
+A simple [next.js](https://nextjs.org/) app which generates film recommendations using data from [letterboxd](https://letterboxd.com/) and the [ChatGPT API](https://platform.openai.com/docs/guides/chat).
+
+Entering a letterboxd username will fetch the latest diary entries from their profile's RSS feed, generate a short description of their taste in films, and then generate a list of recommendations.

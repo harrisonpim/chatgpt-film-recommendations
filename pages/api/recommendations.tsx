@@ -35,9 +35,11 @@ export default async function handler(
       { role: 'assistant', content: taste },
       { role: 'user', content: recommendationPrompt },
     ]
-
+    console.log({ messages })
+    
     const recommendationCompletion = await createChatCompletion(messages)
     const recommendations = JSON.parse(recommendationCompletion)
+    console.log({ recommendations })
 
     res.status(200).json({ recommendations })
   } catch (error) {

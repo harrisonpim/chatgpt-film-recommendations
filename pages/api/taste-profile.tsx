@@ -17,6 +17,7 @@ export default async function handler(
   }
   try {
     const ratings: Rating[] = JSON.parse(req.headers.ratings as string)
+    console.log({ ratings })
     const prompt = tasteProfilePrompt.replace(
       '{{ratings}}',
       ratings
@@ -27,11 +28,13 @@ export default async function handler(
         .join('\n')
     )
 
-    const tasteProfileCompletion = await createChatCompletion([
+    const tasteProfile = await createChatCompletion([
       { role: 'user', content: prompt },
     ])
 
-    res.status(200).json({ tasteProfile: tasteProfileCompletion })
+    console.log({ tasteProfile })
+
+    res.status(200).json({ tasteProfile })
   } catch (error) {
     // @ts-ignore
     res.status(500).json({ message: error.message })
