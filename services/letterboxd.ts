@@ -1,10 +1,5 @@
+import { Rating } from "@/types";
 import { load } from "cheerio";
-
-export type Rating = {
-  title: string;
-  year: number;
-  rating: number;
-};
 
 export async function getRatings(
   username: string,
@@ -19,7 +14,7 @@ export async function getRatings(
     if (i >= n) return;
     const title = $(item).find("letterboxd\\:filmTitle").text();
     const year = parseInt($(item).find("letterboxd\\:filmYear").text());
-    const rating = parseInt($(item).find("letterboxd\\:memberRating").text());
+    const rating = parseFloat($(item).find("letterboxd\\:memberRating").text());
     ratings.push({ title, year, rating });
   });
   return ratings;
