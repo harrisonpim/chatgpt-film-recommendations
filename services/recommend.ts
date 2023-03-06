@@ -1,21 +1,27 @@
-import { createChatCompletion } from "./chatgpt";
+import { Message, createChatCompletion } from "./chatgpt";
+
 import { getRatings } from "./letterboxd";
 
-const recommendationPrompt = `Here's a list of films I've watched, with the ratings I gave them:
+const tastePrompt = `Here's a list of films I've watched, with the ratings I gave them:
 
 {{ratings}}
 
-Based on that list, can you suggest some films I should watch? The list should contain titles which span the last few decades, and should contain a few non-english language films too.
+Based on that list, describe the characteristics of the films which I enjoy, and what's important to me when choosing a film to watch.
+`;
 
-You should return the list of recommendations as a json array, like this:
+const recommendationPrompt = `Based on those characteristics, recommend a set of films to me.
+
+Your response should be formatted as a json array of recommendations, like this:
 [
   {
     "title": "The Godfather",
-    "year": 1972,
-    "shortDescription": "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son."
+    "year": 1972
+    "shortDescription": "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.",
   },
   ...
 ]
+
+Responses which do not follow this format exactly will be rejected. Do not include any other information in your response.
 `;
 
 function ratingToStars(n: number) {
@@ -24,7 +30,7 @@ function ratingToStars(n: number) {
 
 export const getRecommendations = async (username: string) => {
   const ratings = await getRatings(username);
-  const prompt = recommendationPrompt.replace(
+  const prompt = tastePrompt.replace(
     "{{ratings}}",
     ratings
       .map(
@@ -33,6 +39,11 @@ export const getRecommendations = async (username: string) => {
       )
       .join("\n")
   );
-  const completion = await createChatCompletion(prompt);
-  return completion;
+  let messages: Message[] = [{ role: "user", content: prompt }];
+  const tasteCompletion = await createChatCompletion(messages);
+  messages.push({ role: "assistant", content: tasteCompletion as string });
+  messages.push({ role: "user", content: recommendationPrompt });
+  const recommendationCompletion = await createChatCompletion(messages);
+  const recommendations = JSON.parse(recommendationCompletion);
+  return { taste: tasteCompletion, recommendations };
 };

@@ -4,11 +4,12 @@ import { useState } from "react";
 type Recommendation = {
   title: string;
   year: string;
-  shortDescription: string;
+  shortDescription?: string;
 };
 
 export default function Index() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [taste, setTaste] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -22,8 +23,9 @@ export default function Index() {
       setLoading(false);
       setError(message);
     } else {
-      const { recommendations } = await apiResponse.json();
+      const { taste, recommendations } = await apiResponse.json();
       setLoading(false);
+      setTaste(taste);
       setRecommendations(recommendations as Recommendation[]);
     }
   };
@@ -66,6 +68,9 @@ export default function Index() {
           {recommendations.length > 0 && (
             <div>
               <h2>Recommendations</h2>
+              <p>
+                {taste}
+              </p>
               <ul>
                 {recommendations.map((recommendation: Recommendation, i) => (
                   <li key={i}>

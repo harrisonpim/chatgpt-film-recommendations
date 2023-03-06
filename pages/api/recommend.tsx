@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
+import { getRatings } from "@/services/letterboxd";
 import { getRecommendations } from "@/services/recommend";
 
 export default async function handler(
@@ -14,9 +15,11 @@ export default async function handler(
     res.status(400).json({ message: "Missing username" });
   }
   try {
-    const recommendations = await getRecommendations(username as string);
-    const parsedRecommendations = JSON.parse(recommendations);
-    res.status(200).json({ recommendations: parsedRecommendations });
+    const { taste, recommendations } = await getRecommendations(
+      username as string
+    );
+
+    res.status(200).json({ taste, recommendations });
   } catch (error) {
     console.log(error);
     // @ts-ignore

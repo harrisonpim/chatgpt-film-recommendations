@@ -5,10 +5,15 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-export const createChatCompletion = async (prompt: string) => {
+export type Message = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+export const createChatCompletion = async (messages: Message[]) => {
   const completion = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
-    messages: [{ role: "user", content: prompt }],
+    messages,
   });
   return completion.data.choices[0].message.content;
 };
