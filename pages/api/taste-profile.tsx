@@ -1,9 +1,9 @@
-import { Message, Rating } from '@/types'
 import { NextApiRequest, NextApiResponse } from 'next'
-import { recommendationPrompt, tasteProfilePrompt } from '@/services/prompts'
 
+import { Rating } from '@/types'
 import { createChatCompletion } from '@/services/chatgpt'
 import { ratingToStars } from '@/services'
+import { tasteProfilePrompt } from '@/services/prompts'
 
 export default async function handler(
   req: NextApiRequest,
@@ -15,12 +15,8 @@ export default async function handler(
   if (!req.headers.ratings) {
     res.status(400).json({ message: 'Missing ratings' })
   }
-  if (!req.headers.taste) {
-    res.status(400).json({ message: 'Missing taste' })
-  }
   try {
     const ratings: Rating[] = JSON.parse(req.headers.ratings as string)
-    const taste: string = req.headers.taste as string
     const prompt = tasteProfilePrompt.replace(
       '{{ratings}}',
       ratings
@@ -30,16 +26,12 @@ export default async function handler(
         )
         .join('\n')
     )
-    let messages: Message[] = [
+
+    const tasteProfileCompletion = await createChatCompletion([
       { role: 'user', content: prompt },
-      { role: 'assistant', content: taste },
-      { role: 'user', content: recommendationPrompt },
-    ]
+    ])
 
-    const recommendationCompletion = await createChatCompletion(messages)
-    const recommendations = JSON.parse(recommendationCompletion)
-
-    res.status(200).json({ recommendations })
+    res.status(200).json({ tasteProfile: tasteProfileCompletion })
   } catch (error) {
     // @ts-ignore
     res.status(500).json({ message: error.message })

@@ -1,84 +1,63 @@
-import { Rating, Recommendation } from "../types";
+import { GetServerSideProps } from 'next'
+import Head from 'next/head'
+import Image from 'next/image'
+import { Recommendation } from '../types'
+import { X } from 'react-feather'
+import { useState } from 'react'
 
-import Head from "next/head";
-import { useState } from "react";
+type Props = {
+  username: string
+}
 
-export default function Index() {
-  const [username, setUsername] = useState("");
+export default function Index(props: Props) {
+  const [username, setUsername] = useState(props.username)
+  const [loadingRatings, setLoadingRatings] = useState(false)
 
-  const [loadingRatings, setLoadingRatings] = useState(false);
-  const [ratings, setRatings] = useState<Rating[]>([]);
+  const [loadingTasteProfile, setLoadingTasteProfile] = useState(false)
+  const [tasteProfile, setTasteProfile] = useState(null)
 
-  const [loadingTaste, setLoadingTaste] = useState(false);
-  const [taste, setTaste] = useState(null);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false)
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([])
 
-  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [error, setError] = useState(null)
 
-  const [error, setError] = useState(null);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoadingRatings(true)
+    const { ratings } = await fetch(`/api/ratings/${username}`).then((res) =>
+      res.json()
+    )
+    setLoadingRatings(false)
 
-  const handleGetRatings = async (username: string) => {
-    setLoadingRatings(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/ratings/${username}`);
-      const data = await res.json();
-      setRatings(data.ratings);
-    } catch (e) {
-      setError(e.message);
-    }
-    setLoadingRatings(false);
-  };
+    setLoadingTasteProfile(true)
+    const { tasteProfile } = await fetch(`/api/taste-profile`, {
+      headers: {
+        ratings: JSON.stringify(ratings),
+      },
+    }).then((res) => res.json())
+    setTasteProfile(tasteProfile)
+    setLoadingTasteProfile(false)
 
-  const handleGetTaste = async () => {
-    setLoadingTaste(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/taste`, {
-        headers: {
-          ratings: JSON.stringify(ratings),
-        },
-      });
-      const data = await res.json();
-      setTaste(data.taste);
-    } catch (e) {
-      setError(e.message);
-    }
-    setLoadingTaste(false);
-  };
+    setLoadingRecommendations(true)
+    const { recommendations } = await fetch(`/api/recommendations`, {
+      headers: {
+        ratings: JSON.stringify(ratings),
+        taste: JSON.stringify(tasteProfile),
+      },
+    }).then((res) => res.json())
+    setRecommendations(recommendations)
+    setLoadingRecommendations(false)
 
-  const handleGetRecommendations = async () => {
-    setLoadingRecommendations(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/recommendations`, {
-        headers: {
-          ratings: JSON.stringify(ratings),
-          taste: JSON.stringify(taste),
-        },
-      });
-      const data = await res.json();
-      setRecommendations(data.recommendations);
-    } catch (e) {
-      setError(e.message);
-    }
-    setLoadingRecommendations(false);
-  };
+    setError(null)
+    return recommendations
+  }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setRatings([]);
-    setTaste(null);
-    setRecommendations([]);
-    handleGetRatings(username).then(() => {
-      handleGetTaste().then(() => {
-        handleGetRecommendations();
-      });
-    }, console.error);
-    setUsername("");
-  };
-
-  let isLoading = loadingRatings || loadingTaste || loadingRecommendations;
+  const clearState = () => {
+    setUsername('')
+    setTasteProfile(null)
+    setRecommendations([])
+    setError(null)
+  }
 
   return (
     <>
@@ -86,72 +65,120 @@ export default function Index() {
         <title>ChatGPT Film Recommendations</title>
         <meta
           name="description"
-          content="A simple webapp to generate film recommendations using the ChatGPT API. Takes a letterboxd username and generates a list of film recommendations based on the RSS feed of the user's watched films."
+          content="Generating film recommendations with large language models"
+        />
+        <link
+          rel="icon"
+          href={`data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🍿</text></svg>`}
         />
       </Head>
       <div>
-        <div>
-          <h1>ChatGPT Film Recommendations</h1>
-          <p>
-            A simple webapp to generate film recommendations using the{" "}
-            <a href="https://platform.openai.com/docs/guides/chat">
-              ChatGPT API
-            </a>
-            . Takes a letterboxd username and generates a list of film
-            recommendations based on the RSS feed of the user&apos;s watched
-            films.
-          </p>
-          <p>
-            Enter your letterboxd username to get a description of your taste in
-            film and a list of film recommendations.
-          </p>
-        </div>
-        <div>
-          <form onSubmit={handleSubmit}>
-            <input
-              type="text"
-              placeholder="username"
-              disabled={isLoading}
-              onChange={(e) => setUsername(e.target.value)}
+        <div className="flex flex-row items-center justify-center gap-x-5">
+          <div className="flex items-center gap-x-2">
+            <Image
+              src="/letterboxd.svg"
+              alt="Letterboxd"
+              width="40"
+              height="40"
+              className="dark:hidden"
             />
-            <button type="submit" disabled={isLoading}>
+            <Image
+              src="/letterboxd-dark.svg"
+              alt="Letterboxd"
+              width="40"
+              height="40"
+              className="hidden dark:block"
+            />
+            <X className="h-auto w-6" />
+            <Image
+              src="/openai.svg"
+              alt="OpenAI"
+              width="40"
+              height="40"
+              className="dark:invert"
+            />
+          </div>
+
+          <h1 className="text-xl font-bold leading-6 tracking-normal">
+            ChatGPT Film <br />
+            Recommendations
+          </h1>
+        </div>
+        <div className="mt-6 flex flex-col gap-y-4">
+          <form onSubmit={(e) => handleSubmit(e)}>
+            <div className="relative flex flex-row items-center justify-center">
+              <input
+                className="bg-gray-100 w-full rounded border border-gray px-4 py-2 text-lg text-dark-gray placeholder-gray focus:outline-none dark:border-none"
+                type="text"
+                placeholder="What's your letterboxd username?"
+                value={username}
+                disabled={
+                  loadingRatings ||
+                  loadingTasteProfile ||
+                  loadingRecommendations
+                }
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <button
+                type="reset"
+                className={`absolute right-0 mr-2 text-dark-gray ${
+                  (username && 'visible') || 'invisible'
+                }`}
+                onClick={() => clearState()}
+              >
+                <X className="w-6" />
+              </button>
+            </div>
+            <div className="pt-1 text-sm text-gray dark:text-light-gray">
               {loadingRatings
-                ? "Fetching letterboxd ratings..."
-                : loadingTaste
-                ? "Generating taste description..."
+                ? 'Fetching letterboxd ratings...'
+                : loadingTasteProfile
+                ? 'Generating a taste profile based on your ratings...'
                 : loadingRecommendations
-                ? "Generating recommendations..."
-                : "Get Recommendations"}
-            </button>
+                ? 'Generating recommendations...'
+                : null}
+            </div>
           </form>
 
           {error && <p>{error}</p>}
 
-          {taste && (
+          {tasteProfile && (
             <div>
-              <h3>Taste</h3>
-              <p>{taste}</p>
+              <h3>Taste Profile</h3>
+              <p className="text-sm text-dark-gray dark:text-light-gray">
+                {tasteProfile}
+              </p>
+            </div>
+          )}
 
-              {recommendations.length > 0 && (
-                <div>
-                  <h3>Recommendations</h3>
-                  <ul>
-                    {recommendations.map((recommendation, i) => (
-                      <li key={i}>
-                        <a
-                          href={`https://letterboxd.com/search/films/${recommendation.title} ${recommendation.year}/?adult`}
-                        >
-                          {recommendation.title} ({recommendation.year})
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+          {recommendations.length > 0 && (
+            <div>
+              <h3>Recommendations</h3>
+              <ul className="flex list-inside list-disc flex-col gap-y-1 text-sm text-dark-gray dark:text-light-gray">
+                {recommendations.map((recommendation, i) => (
+                  <li key={i}>
+                    <a
+                      className="underline underline-offset-4	"
+                      href={`https://letterboxd.com/search/films/${recommendation.title} ${recommendation.year}/?adult`}
+                    >
+                      {recommendation.title} ({recommendation.year})
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
       </div>
     </>
-  );
+  )
+}
+
+export const getServerSideProps: GetServerSideProps = async ({ query }) => {
+  const username = (query.username as string) || ''
+  return {
+    props: {
+      username,
+    },
+  }
 }
