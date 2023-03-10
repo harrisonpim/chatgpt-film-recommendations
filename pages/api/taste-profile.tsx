@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next'
+import { systemPrompt, tasteProfilePrompt } from '@/services/prompts'
 
 import { Rating } from '@/types'
 import { createChatCompletion } from '@/services/chatgpt'
 import { ratingToStars } from '@/services'
-import { tasteProfilePrompt } from '@/services/prompts'
 
 export default async function handler(
   req: NextApiRequest,
@@ -17,7 +17,6 @@ export default async function handler(
   }
   try {
     const ratings: Rating[] = JSON.parse(req.headers.ratings as string)
-    console.log({ ratings })
     const prompt = tasteProfilePrompt.replace(
       '{{ratings}}',
       ratings
@@ -29,10 +28,9 @@ export default async function handler(
     )
 
     const tasteProfile = await createChatCompletion([
+      { role: 'user', content: systemPrompt },
       { role: 'user', content: prompt },
     ])
-
-    console.log({ tasteProfile })
 
     res.status(200).json({ tasteProfile })
   } catch (error) {

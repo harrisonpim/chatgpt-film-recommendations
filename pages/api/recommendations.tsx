@@ -1,6 +1,10 @@
 import { Message, Rating } from '@/types'
 import { NextApiRequest, NextApiResponse } from 'next'
-import { recommendationPrompt, tasteProfilePrompt } from '@/services/prompts'
+import {
+  recommendationPrompt,
+  systemPrompt,
+  tasteProfilePrompt,
+} from '@/services/prompts'
 
 import { createChatCompletion } from '@/services/chatgpt'
 import { ratingToStars } from '@/services'
@@ -31,15 +35,14 @@ export default async function handler(
         .join('\n')
     )
     let messages: Message[] = [
+      { role: 'user', content: systemPrompt },
       { role: 'user', content: prompt },
       { role: 'assistant', content: taste },
       { role: 'user', content: recommendationPrompt },
     ]
-    console.log({ messages })
-    
+
     const recommendationCompletion = await createChatCompletion(messages)
     const recommendations = JSON.parse(recommendationCompletion)
-    console.log({ recommendations })
 
     res.status(200).json({ recommendations })
   } catch (error) {

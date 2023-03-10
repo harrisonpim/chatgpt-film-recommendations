@@ -23,6 +23,7 @@ export default function Index(props: Props) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    clearResults()
     setLoadingRatings(true)
     const { ratings } = await fetch(`/api/ratings/${username}`).then((res) =>
       res.json()
@@ -52,11 +53,15 @@ export default function Index(props: Props) {
     return recommendations
   }
 
-  const clearState = () => {
-    setUsername('')
+  const clearResults = () => {
     setTasteProfile(null)
     setRecommendations([])
     setError(null)
+  }
+
+  const clearState = () => {
+    setUsername('')
+    clearResults()
   }
 
   return (
