@@ -1,12 +1,15 @@
 {
-  "name": "my-app",
+  "name": "chatgpt-film-recommendations",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "prettier --write . && next lint"
+    "lint": "prettier --write . && next lint",
+    "link": "vercel link",
+    "env": "vercel env pull",
+    "deploy": "next build && next export && vercel --prod"
   },
   "dependencies": {
     "@types/node": "18.14.6",

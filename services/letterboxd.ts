@@ -3,7 +3,7 @@ import { load } from 'cheerio'
 
 export async function getRatings(
   username: string,
-  n: number = 100
+  n: number = 20
 ): Promise<Rating[]> {
   const xml = await fetch(`https://letterboxd.com/${username}/rss`).then(
     (res) => res.text()
